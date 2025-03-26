@@ -262,7 +262,6 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         print("    GreenHEART input loaded")
         hopp_input = load_yaml(get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "hopp"))
         print("    HOPP input loaded")
-        financial_input = load_yaml(get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "fin"))
         gh_financial_parameters = greenheart_input["finance_parameters"]
         print("    Financial input loaded")
         if get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "orbit"):
@@ -297,31 +296,35 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         qoi["State"] = states[design]
         qoi["Area"] = regions[design]
         qoi["Product"] = products[design]
+        qoi["Foundation"] = foundation_type[design]
         qoi["Real ROE wind (\%)"] = gh_financial_parameters["discount_rate"]["wind"]*100
         qoi["Real ROE PV (\%)"] = gh_financial_parameters["discount_rate"]["solar"]*100
         qoi["Real ROE battery (\%)"] = gh_financial_parameters["discount_rate"]["battery"]*100
         qoi["Real ROE hydrogen (\%)"] = gh_financial_parameters["discount_rate"]["electrolyzer"]*100
         qoi["Real ROE steel (\%)"] = roe_steel*100
         qoi["Real ROE ammonia (\%)"] = roe_ammonia*100
-        qoi["Federal income tax rate (\%)"] = financial_input["financial_parameters"]["federal_tax_rate"]
-        qoi["Capital gains tax rate (\%)"] = financial_input["financial_parameters"]["capital_gains_tax_rate"]
-        qoi["State income tax rate (\%)"] = financial_input["financial_parameters"]["state_tax_rate"]
-        qoi["Property tax rate (\%)"] = financial_input["financial_parameters"]["property_tax_rate"]
-        qoi["Sales tax rate (\%)"] = financial_input["financial_parameters"]["sales_tax_rate_state"]
-        qoi["Insurance rate (\%)"] = financial_input["financial_parameters"]["insurance_rate"]
+        qoi["Total income tax rate (\%)"] = gh_financial_parameters["total_income_tax_rate"]*100
+        qoi["Capital gains tax rate (\%)"] = gh_financial_parameters["capital_gains_tax_rate"]*100
+        qoi["Property tax rate (\%)"] = gh_financial_parameters["property_tax"]*100
+        qoi["Property insurance rate (\%)"] = gh_financial_parameters["property_insurance"]*100
         qoi["Debt percentage wind (\%)"] = gh_financial_parameters["debt_equity_split"]["wind"]*100
         qoi["Debt percentage PV (\%)"] = gh_financial_parameters["debt_equity_split"]["solar"]*100
         qoi["Debt percentage battery (\%)"] = gh_financial_parameters["debt_equity_split"]["battery"]*100
         qoi["Debt percentage hydrogen (\%)"] = gh_financial_parameters["debt_equity_split"]["electrolyzer"]*100
         qoi["Debt percentage steel (\%)"] = debt_percent_steel*100
         qoi["Debt percentage ammonia (\%)"] = debt_percent_ammonia*100
-        qoi["Debt interest rate (\%)"] = financial_input["financial_parameters"]["term_int_rate"]
+        qoi["Debt interest rate wind (\%)"] = gh_financial_parameters["debt_interest_rate"]["wind"]*100
+        qoi["Debt interest rate PV (\%)"] = gh_financial_parameters["debt_interest_rate"]["solar"]*100
+        qoi["Debt interest rate battery (\%)"] = gh_financial_parameters["debt_interest_rate"]["battery"]*100
+        qoi["Debt interest rate electrolyzer (\%)"] = gh_financial_parameters["debt_interest_rate"]["electrolyzer"]*100
+        qoi["Debt interest rate hydrogen storage (\%)"] = gh_financial_parameters["debt_interest_rate"]["h2_storage"]*100
         qoi["Debt interest rate steel/ammonia (\%)"] = debt_rate_steel_ammonia*100
-        qoi["Months working reserve"] = financial_input["financial_parameters"]["months_working_reserve"]
+        qoi["Months working reserve"] = gh_financial_parameters["cash_onhand_months"]
         qoi["Debt type"] = "Revolving" #financial_input["financial_parameters"]["debt_type"]
-        qoi["Depr. method"] = financial_input["financial_parameters"]["depreciation_method"]
-        qoi["Depr. period (clean energy) (years)"] = financial_input["financial_parameters"]["depreciation_period"]
-        qoi["Depr. period (hydrogen) (years)"] = greenheart_input["finance_parameters"]["depreciation_period_electrolyzer"]
+        qoi["Depr. method"] = gh_financial_parameters["depreciation_method"]
+        qoi["Depr. period (clean energy) (years)"] = gh_financial_parameters["depreciation_period"]
+        qoi["Depr. period (hydrogen) (years)"] = gh_financial_parameters["depreciation_period_electrolyzer"]
+        qoi["Depr. period (steel/ammonia) (years)"] = 7
 
         qoi_dictionary_list.append(qoi)
     
@@ -343,8 +346,109 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
 
     print(qoi_df.fillna(" ").T.to_latex(float_format=general_format))
 
+def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
+    ref_sys_path = "../reference-systems/"
+    plant_files_path = "greenHEART/input-files/plant/"
+    output_files_path = "greenHEART/output/data/"
+
+    # get all reference design names
+    reference_design_names = os.listdir(ref_sys_path)
+
+    # define region/area
+    regions = {"01": "", "02": "", "03": "Gulf Coast", "04": "New York Bight", "05": ""}
+    products = {"01": "Steel", "02": "Ammonia", "03": "Hydrogen", "04": "Hydrogen", "05": "Hydrogen"}
+    states = {"01": "Minnesota", "02": "Texas", "03": "Texas", "04": "New Jersey", "05": "California"}
+
+    qoi_dictionary_list = []
+    # loop over designs
+    for design in designs_to_compare:
+        # get full design name
+        design_name = [s for s in reference_design_names if design in s][0]
+        print(f"Design: {design_name}")
+        # load input files
+        greenheart_input = load_yaml(get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "greenheart"))
+        print("    GreenHEART input loaded")
+        hopp_input = load_yaml(get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "hopp"))
+        print("    HOPP input loaded")
+        ghout_path = get_filename_from_partial_name(ref_sys_path+design_name+"/"+output_files_path, "output.yaml")
+        greenheart_output = load_yaml(ghout_path)
+        print("GreenHEART output loaded")
+
+        if get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "orbit"):
+            orbit_input = load_yaml(get_filename_from_partial_name(ref_sys_path+design_name+"/"+plant_files_path, "orbit"), loader=CombinedLoader)
+            print("    ORBIT input loaded")
+        else:
+            orbit_input = False
+            print("    ORBIT input skipped")
+
+        if "ammonia" in greenheart_input:
+            ammonia_capex = str(np.round(greenheart_output["ammonia_costs"]["capex_total"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=2))+"$^*$"
+            ammonia_opex = str(np.round(greenheart_output["ammonia_costs"]["total_fixed_operating_cost"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=2))+"$^*$"
+        else:
+            ammonia_capex = np.nan
+            ammonia_opex = np.nan
+
+        if "steel" in greenheart_input:
+            steel_capex = str(np.round(greenheart_output["steel_costs"]["total_plant_cost"]/greenheart_output["steel_capacity"]["steel_plant_capacity_mtpy"], decimals=2))+"$^*$"
+            steel_opex = str(np.round(greenheart_output["steel_costs"]["total_fixed_operating_cost"]/greenheart_output["steel_capacity"]["steel_plant_capacity_mtpy"], decimals=2))+"$^*$"
+        else:
+            steel_capex = np.nan
+            steel_opex = np.nan
+
+        nturbines = hopp_input["technologies"]["wind"]["num_turbines"]
+        turbine_rating = hopp_input["technologies"]["wind"]["turbine_rating_kw"]
+        if "wind_installed_cost_mw" in hopp_input["config"]["cost_info"]:
+            wind_installed_cost_kw = np.round(hopp_input["config"]["cost_info"]["wind_installed_cost_mw"]*1E-3, decimals=2)
+        else:
+            wind_installed_cost_kw = str(np.round(greenheart_output["capex_breakdown"]["wind"]/(nturbines*turbine_rating), decimals=2))+"$^*$"
+
+        if "wind_om_per_kw" in hopp_input["config"]["cost_info"]:
+            wind_om_per_kw = np.round(hopp_input["config"]["cost_info"]["wind_om_per_kw"], decimals=2)
+        else:
+            wind_om_per_kw = str(np.round(greenheart_output["opex_breakdown_annual"]["wind_and_electrical"]/(nturbines*turbine_rating), decimals=2))+"$^*$"
+
+        # get QOIs
+        qoi = {}
+        qoi["ID"] = design
+        qoi["State"] = states[design]
+        qoi["Area"] = regions[design]
+        qoi["Product"] = products[design]
+        qoi["Wind CapEx (USD/kW)"] = wind_installed_cost_kw
+        qoi["Solar PV  CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["solar_installed_cost_mw"]*1E-3
+        qoi["Battery CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mw"]*1E-3
+        qoi["Battery CapEx (USD/kWh)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mwh"]*1E-3
+        qoi["PEM CapEx 1 MW system (USD/kW)"] = greenheart_input["electrolyzer"]["electrolyzer_capex"]
+        qoi["Steel plant CapEx (USD/Mt)"] = steel_capex
+        qoi["Ammonia plant CapEx (USD/t)"] = ammonia_capex
+        qoi["Wind fixed O\&M (USD/kW)"] = wind_om_per_kw
+        qoi["Solar PV fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["pv_om_per_kw"]
+        qoi["Battery fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["battery_om_per_kw"]
+        qoi["Electrolyzer fixed O\&M (USD/kW)"] = str(np.round(greenheart_output["opex_breakdown_annual"]["electrolyzer"]/(greenheart_input["electrolyzer"]["rating"]*1E3), decimals=2))+"$^*$"
+        qoi["Steel plant fixed O\&M (USD/Mt)"] = steel_opex
+        qoi["Ammonia plant fixed O\&M (USD/t)"] = ammonia_opex
+
+        qoi_dictionary_list.append(qoi)
+    
+    # create dataframe
+    qoi_df = pd.DataFrame(qoi_dictionary_list)
+    qoi_df = qoi_df.set_index(keys=["ID"], drop=True)
+
+    # general_format = "{:,.2f}".format
+    qoi_df.style.format(thousands=",")
+
+    general_format = "{:,.2f}".format
+
+    for column in qoi_df.columns:
+        if qoi_df[column].dtype is float:
+            if (qoi_df[column].min() > 99): 
+                qoi_df[column] = qoi_df[column].round(decimals=0)
+            else:
+                qoi_df[column] = qoi_df[column].round(decimals=2)
+
+    print(qoi_df.fillna(" ").T.to_latex(float_format=general_format))
 
 if __name__ == "__main__":
 
-    comparison_table()
-    financial_inputs_table()
+    # comparison_table()
+    # financial_inputs_table()
+    costs_table()
