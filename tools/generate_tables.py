@@ -66,7 +66,7 @@ def get_filename_from_partial_name(directory: str, search_string: str):
     return False
 
 def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
-    ref_sys_path = "../reference-systems/"
+    ref_sys_path = "../reference_systems/"
     plant_files_path = "greenHEART/input-files/plant/"
     output_files_path = "greenHEART/output/data/"
 
@@ -118,7 +118,13 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         qoi["On/Offshore"] = greenheart_input["plant_design"][f"scenario{int(design)}"]["wind_location"].capitalize()
         qoi["Turbine foundation"] = foundation_type[design]
         qoi["Hydrogen storage type"] = storage_keys[greenheart_input["h2_storage"]["type"]]
-        qoi["PEM electrolyzer rating (MW)"] = (greenheart_input["electrolyzer"]["rating"])
+        qoi["PEM rating (MW)"] = (greenheart_input["electrolyzer"]["rating"])
+        qoi["PEM life (hours)"] = (greenheart_input["electrolyzer"]["uptime_hours_until_eol"])
+        qoi["PEM EOL efficiency loss ($\%$)"] = (greenheart_input["electrolyzer"]["eol_eff_percent_loss"])*100
+        qoi["PEM turn-down ratio ($\%$)"] = (greenheart_input["electrolyzer"]["turndown_ratio"])*100
+        qoi["PEM degradation rate (mV/h)"] = "0.0025"
+        qoi["PEM on/off cycle deg. (mv/off-cycle)"] = "0.148"
+        qoi["PEM beg.-of-life eff. (kWh/kg)"] = 51.0
         num_turbines = hopp_input["technologies"]["wind"]["num_turbines"]
         turbine_rating_kw = hopp_input["technologies"]["wind"]["turbine_rating_kw"]
         qoi["Wind farm rating (MW)"] = num_turbines*turbine_rating_kw*1E-3
@@ -264,7 +270,7 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
     return 0
 
 def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
-    ref_sys_path = "../reference-systems/"
+    ref_sys_path = "../reference_systems/"
     plant_files_path = "greenHEART/input-files/plant/"
     output_files_path = "greenHEART/output/data/"
 
@@ -324,6 +330,7 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         qoi["Area"] = regions[design]
         qoi["Product"] = products[design]
         qoi["Foundation"] = foundation_type[design]
+        qoi["Plant Life (years)"] = greenheart_input["project_parameters"]["project_lifetime"]
         qoi["Real ROE wind (\%)"] = gh_financial_parameters["discount_rate"]["wind"]*100
         qoi["Real ROE PV (\%)"] = gh_financial_parameters["discount_rate"]["solar"]*100
         qoi["Real ROE battery (\%)"] = gh_financial_parameters["discount_rate"]["battery"]*100
@@ -374,7 +381,7 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
     print(qoi_df.fillna(" ").T.to_latex(float_format=general_format))
 
 def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
-    ref_sys_path = "../reference-systems/"
+    ref_sys_path = "../reference_systems/"
     plant_files_path = "greenHEART/input-files/plant/"
     output_files_path = "greenHEART/output/data/"
 
@@ -445,12 +452,14 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         qoi["Battery CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mw"]*1E-3
         qoi["Battery CapEx (USD/kWh)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mwh"]*1E-3
         qoi["PEM CapEx 1 MW system (USD/kW)"] = greenheart_input["electrolyzer"]["electrolyzer_capex"]
+        qoi["PEM stack replacement cost ($\%$ of CapEx)"] = (greenheart_input["electrolyzer"]["replacement_cost_percent"])*100
         qoi["Steel plant CapEx (USD/Mt)"] = steel_capex
         qoi["Ammonia plant CapEx (USD/t)"] = ammonia_capex
         qoi["Wind fixed O\&M (USD/kW)"] = wind_om_per_kw
         qoi["Solar PV fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["pv_om_per_kw"]
         qoi["Battery fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["battery_om_per_kw"]
         qoi["Electrolyzer fixed O\&M (USD/kW)"] = str(np.round(greenheart_output["opex_breakdown_annual"]["electrolyzer"]/(greenheart_input["electrolyzer"]["rating"]*1E3), decimals=2))+"$^*$"
+        qoi["Electrolyzer variable O\&M (USD/MW)"] = greenheart_input["electrolyzer"]["var_om"]*1E3
         qoi["Steel plant fixed O\&M (USD/Mt)"] = steel_opex
         qoi["Ammonia plant fixed O\&M (USD/t)"] = ammonia_opex
 
@@ -476,6 +485,6 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
 
 if __name__ == "__main__":
 
-    # comparison_table()
+    comparison_table()
     financial_inputs_table()
-    # costs_table()
+    costs_table()

@@ -53,15 +53,15 @@ def plot_performance_curves(sites, save_location=False, xlim=[0,30], ylimp=[0,0.
 def load_performance_data(site):
 
     if site == 1:
-        data = load_yaml("../reference-systems/01-minnesota-steel/greenHEART/input-files/turbines/ATB2024_6MW_170RD_floris_turbine.yaml")
+        data = load_yaml("../reference_systems/01-minnesota-steel/greenHEART/input-files/turbines/ATB2024_6MW_170RD_floris_turbine.yaml")
     elif site == 2:
-        data = load_yaml("../reference-systems/02-texas-ammonia/greenHEART/input-files/turbines/ATB2024_6MW_170RD_floris_turbine.yaml")
+        data = load_yaml("../reference_systems/02-texas-ammonia/greenHEART/input-files/turbines/ATB2024_6MW_170RD_floris_turbine.yaml")
     elif site == 3:
-        data = load_yaml("../reference-systems/03-gulf-of-mexico-hydrogen/greenHEART/input-files/turbines/osw_17MW.yaml")
+        data = load_yaml("../reference_systems/03-gulf-of-mexico-hydrogen/greenHEART/input-files/turbines/osw_17MW.yaml")
     elif site == 4:
-        data = load_yaml("../reference-systems/04-new-york-bight-hydrogen/greenHEART/input-files/turbines/osw_15MW.yaml")
+        data = load_yaml("../reference_systems/04-new-york-bight-hydrogen/greenHEART/input-files/turbines/osw_15MW.yaml")
     elif site == 5:
-        data = load_yaml("../reference-systems/05-california-hydrogen/greenHEART/input-files/turbines/osw_15MW.yaml")
+        data = load_yaml("../reference_systems/05-california-hydrogen/greenHEART/input-files/turbines/osw_15MW.yaml")
 
     return data
 
