@@ -198,15 +198,15 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
             qoi["LCOA (USD/kg-NH$_3$)"] = None
 
 
-        qoi["WACC-H$_2$"] = greenheart_output["profast_sol_lcoh"]["wacc"]
+        qoi["WACC-H$_2$"] = str(greenheart_output["profast_sol_lcoh"]["wacc"])
 
         if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
-            qoi["WACC-steel"] = greenheart_output["steel_finance"]["sol"]["wacc"]
+            qoi["WACC-steel"] = str(greenheart_output["steel_finance"]["sol"]["wacc"])
         else:
             qoi["WACC-ammonia"] = None
         
         if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
-            qoi["WACC-ammonia"] = greenheart_output["ammonia_finance"]["sol"]["wacc"]
+            qoi["WACC-ammonia"] = str(greenheart_output["ammonia_finance"]["sol"]["wacc"])
         else:
             qoi["WACC-ammonia"] = None
 
@@ -253,7 +253,7 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
                 qoi_df[column] = qoi_df[column].round(decimals=2)
 
     # make short version for executive summary
-    es_columns = ["State", "Area", "Product", "On/Offshore", "PEM electrolyzer rating (MW)", 
+    es_columns = ["State", "Area", "Product", "On/Offshore", "PEM rating (MW)", 
                   "Wind farm rating (MW)", "Solar PV rating (MW)", "Total generation rating (MW)", 
                   "Battery power rating (MW)", "Battery energy rating (MWh)", "Hydrogen storage capacity (kt)",
                   "Steel capacity (Mt/yr)", "Ammonia capacity (kt/yr)", "LCOH (USD/kg-H$_2$)", 
