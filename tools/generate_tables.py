@@ -191,6 +191,33 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         else:
             qoi["LCOA (USD/kg-NH$_3$)"] = None
 
+
+        qoi["WACC-H$_2$"] = greenheart_output["profast_sol_lcoh"]["wacc"]
+
+        if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
+            qoi["WACC-steel"] = greenheart_output["steel_finance"]["sol"]["wacc"]
+        else:
+            qoi["WACC-ammonia"] = None
+        
+        if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
+            qoi["WACC-ammonia"] = greenheart_output["ammonia_finance"]["sol"]["wacc"]
+        else:
+            qoi["WACC-ammonia"] = None
+
+
+        qoi["CRF-H$_2$"] = greenheart_output["profast_sol_lcoh"]["wacc"]
+        
+        if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
+            qoi["CRF-steel"] = greenheart_output["steel_finance"]["sol"]["crf"]
+        else:
+            qoi["CRF-ammonia"] = None
+        
+        if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
+            qoi["CRF-ammonia"] = greenheart_output["ammonia_finance"]["sol"]["crf"]
+        else:
+            qoi["CRF-ammonia"] = None
+
+
         qoi_dictionary_list.append(qoi)
     
     # create dataframe
@@ -450,5 +477,5 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
 if __name__ == "__main__":
 
     # comparison_table()
-    # financial_inputs_table()
-    costs_table()
+    financial_inputs_table()
+    # costs_table()
