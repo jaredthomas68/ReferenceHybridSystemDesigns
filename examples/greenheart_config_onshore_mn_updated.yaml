@@ -42,7 +42,7 @@ finance_parameters:
     solar: 0.044 # 2024 ATB real interest rate for utilty-scale PV
     battery: 0.044 # 2024 ATB real interest rate for utilty-scale battery
     electrolyzer: 0.044 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
-    h2_storage: 0.044 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
+    h2_storage: 0.05 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
   debt_type: "Revolving debt" # can be "Revolving debt" or "One time loan". Revolving debt is H2FAST default and leads to much lower LCOH
   loan_period: 0 # H2FAST default, not used for revolving debt
   cash_onhand_months: 1 # H2FAST default

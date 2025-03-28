@@ -37,7 +37,7 @@ finance_parameters:
     solar: 0.044 # 2024 ATB real interest rate for utilty-scale PV
     battery: 0.044 # 2024 ATB real interest rate for utilty-scale battery
     electrolyzer: 0.05 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
-    h2_storage: 0.044 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
+    h2_storage: 0.05 # based on "Capital Structure for Techno-Economic Analysis of Hydrogen Projects" by Michael Penev, Andrew Gilbert, Neha Rustagi, Jamie Kee, Mariya Koleva, and Mark Chung
   debt_equity_ratio: False
   property_tax: 0.0068 # average effective real property tax rate in California https://taxfoundation.org/data/all/state/property-taxes-by-state-county-2024/
   property_insurance: 0.015 # percent of CAPEX # https://www.nrel.gov/docs/fy24osti/88195.pdf
