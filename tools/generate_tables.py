@@ -495,7 +495,15 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
     products = {"01": "Steel", "02": "Ammonia", "03": "Hydrogen", "04": "Hydrogen", "05": "Hydrogen"}
     states = {"01": "Minnesota", "02": "Texas", "03": "Texas", "04": "New Jersey", "05": "California"}
 
-    qoi_dictionary_list = []
+    qoi_dictionary_list_general = []
+    qoi_dictionary_list_wind = []
+    qoi_dictionary_list_pv = []
+    qoi_dictionary_list_battery = []
+    qoi_dictionary_list_pem = []
+    qoi_dictionary_list_h2_storage = []
+    qoi_dictionary_list_steel = []
+    qoi_dictionary_list_ammonia = []
+
     # loop over designs
     for design in designs_to_compare:
         # get full design name
@@ -518,15 +526,15 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
             print("    ORBIT input skipped")
 
         if "ammonia" in greenheart_input:
-            ammonia_capex = str(np.round(greenheart_output["ammonia_costs"]["capex_total"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=2))+"$^*$"
-            ammonia_opex = str(np.round(greenheart_output["ammonia_costs"]["total_fixed_operating_cost"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=2))+"$^*$"
+            ammonia_capex = str(np.round(greenheart_output["ammonia_costs"]["capex_total"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=1))+"$^*$"
+            ammonia_opex = str(np.round(greenheart_output["ammonia_costs"]["total_fixed_operating_cost"]/greenheart_output["ammonia_capacity"]["ammonia_plant_capacity_kgpy"]*1E3, decimals=1))+"$^*$"
         else:
             ammonia_capex = np.nan
             ammonia_opex = np.nan
 
         if "steel" in greenheart_input:
             steel_capex = str(np.round(greenheart_output["steel_costs"]["total_plant_cost"]/greenheart_output["steel_capacity"]["steel_plant_capacity_mtpy"], decimals=2))+"$^*$"
-            steel_opex = str(np.round(greenheart_output["steel_costs"]["total_fixed_operating_cost"]/greenheart_output["steel_capacity"]["steel_plant_capacity_mtpy"], decimals=2))+"$^*$"
+            steel_opex = str(np.round(greenheart_output["steel_costs"]["total_fixed_operating_cost"]/greenheart_output["steel_capacity"]["steel_plant_capacity_mtpy"], decimals=1))+"$^*$"
         else:
             steel_capex = np.nan
             steel_opex = np.nan
@@ -534,59 +542,112 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         nturbines = hopp_input["technologies"]["wind"]["num_turbines"]
         turbine_rating = hopp_input["technologies"]["wind"]["turbine_rating_kw"]
         if "wind_installed_cost_mw" in hopp_input["config"]["cost_info"]:
-            wind_installed_cost_kw = np.round(hopp_input["config"]["cost_info"]["wind_installed_cost_mw"]*1E-3, decimals=2)
+            wind_installed_cost_kw = np.round(hopp_input["config"]["cost_info"]["wind_installed_cost_mw"]*1E-3, decimals=1)
         else:
-            wind_installed_cost_kw = str(np.round(greenheart_output["capex_breakdown"]["wind"]/(nturbines*turbine_rating), decimals=2))+"$^*$"
+            wind_installed_cost_kw = str(np.round(greenheart_output["capex_breakdown"]["wind"]/(nturbines*turbine_rating), decimals=1))+"$^*$"
 
         if "wind_om_per_kw" in hopp_input["config"]["cost_info"]:
             wind_om_per_kw = np.round(hopp_input["config"]["cost_info"]["wind_om_per_kw"], decimals=2)
         else:
-            wind_om_per_kw = str(np.round(greenheart_output["opex_breakdown_annual"]["wind_and_electrical"]/(nturbines*turbine_rating), decimals=2))+"$^*$"
+            wind_om_per_kw = str(np.round(greenheart_output["opex_breakdown_annual"]["wind_and_electrical"]/(nturbines*turbine_rating), decimals=1))+"$^*$"
 
         # get QOIs
-        qoi = {}
-        qoi["ID"] = design
-        qoi["State"] = states[design]
-        qoi["Area"] = regions[design]
-        qoi["Product"] = products[design]
-        qoi["Wind CapEx (USD/kW)"] = wind_installed_cost_kw
-        qoi["Solar PV  CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["solar_installed_cost_mw"]*1E-3
-        qoi["Battery CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mw"]*1E-3
-        qoi["Battery CapEx (USD/kWh)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mwh"]*1E-3
-        qoi["PEM CapEx 1 MW system (USD/kW)"] = greenheart_input["electrolyzer"]["electrolyzer_capex"]
-        qoi["PEM stack replacement cost ($\%$ of CapEx)"] = (greenheart_input["electrolyzer"]["replacement_cost_percent"])*100
-        qoi["Steel plant CapEx (USD/Mt)"] = steel_capex
-        qoi["Ammonia plant CapEx (USD/t)"] = ammonia_capex
-        qoi["Wind fixed O\&M (USD/kW)"] = wind_om_per_kw
-        qoi["Solar PV fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["pv_om_per_kw"]
-        qoi["Battery fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["battery_om_per_kw"]
-        qoi["Electrolyzer fixed O\&M (USD/kW)"] = str(np.round(greenheart_output["opex_breakdown_annual"]["electrolyzer"]/(greenheart_input["electrolyzer"]["rating"]*1E3), decimals=2))+"$^*$"
-        qoi["Electrolyzer variable O\&M (USD/MW)"] = greenheart_input["electrolyzer"]["var_om"]*1E3
-        qoi["Steel plant fixed O\&M (USD/Mt)"] = steel_opex
-        qoi["Ammonia plant fixed O\&M (USD/t)"] = ammonia_opex
+        qoi_general = {}
+        qoi_general["ID"] = design
+        qoi_general["State"] = states[design]
+        qoi_general["Area"] = regions[design]
+        qoi_general["Product"] = products[design]
 
-        qoi_dictionary_list.append(qoi)
+        qoi_wind = {}
+        qoi_wind["ID"] = design
+        qoi_wind["Wind CapEx (USD/kW)"] = wind_installed_cost_kw
+        qoi_wind["Wind fixed O\&M (USD/kW)"] = wind_om_per_kw
+
+        qoi_pv = {}
+        qoi_pv["ID"] = design
+        qoi_pv["Solar PV  CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["solar_installed_cost_mw"]*1E-3
+        qoi_pv["Solar PV fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["pv_om_per_kw"]
+
+        qoi_batt = {}
+        qoi_batt["ID"] = design
+        qoi_batt["Battery CapEx (USD/kW)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mw"]*1E-3
+        qoi_batt["Battery CapEx (USD/kWh)"] = hopp_input["config"]["cost_info"]["storage_installed_cost_mwh"]*1E-3
+        qoi_batt["Battery fixed O\&M (USD/kW)"] = hopp_input["config"]["cost_info"]["battery_om_per_kw"]
+
+        qoi_pem = {}
+        qoi_pem["ID"] = design
+        qoi_pem["PEM CapEx 1 MW system (USD/kW)"] = greenheart_input["electrolyzer"]["electrolyzer_capex"]
+        qoi_pem["PEM stack replacement cost ($\%$ of CapEx)"] = (greenheart_input["electrolyzer"]["replacement_cost_percent"])*100
+        qoi_pem["PEM fixed O\&M (USD/kW)"] = str(np.round(greenheart_output["opex_breakdown_annual"]["electrolyzer"]/(greenheart_input["electrolyzer"]["rating"]*1E3), decimals=1))+"$^*$"
+        qoi_pem["PEM variable O\&M (USD/MW)"] = greenheart_input["electrolyzer"]["var_om"]*1E3
+
+        qoi_h2_storage= {}
+        qoi_h2_storage["ID"] = design
+        qoi_h2_storage["H$_2$ Storage CapEx (USD/kg)"] = str(np.round(greenheart_output["capex_breakdown"]["h2_storage"]/(greenheart_output["h2_storage_capacity_kg"]), decimals=1)) + "$^*$"
+        qoi_h2_storage["H$_2$ Storage fixed O\&M (USD/t)"] = str(np.round(greenheart_output["opex_breakdown_annual"]["h2_storage"]/(greenheart_output["h2_storage_capacity_kg"]*1E-3), decimals=1)) + "$^*$"
+
+        qoi_steel = {}
+        qoi_steel["ID"] = design
+        qoi_steel["Steel plant CapEx (USD/Mt)"] = steel_capex
+        qoi_steel["Steel plant fixed O\&M (USD/Mt)"] = steel_opex
+
+        qoi_ammonia = {}
+        qoi_ammonia["ID"] = design
+        qoi_ammonia["Ammonia plant CapEx (USD/t)"] = ammonia_capex
+        qoi_ammonia["Ammonia plant fixed O\&M (USD/t)"] = ammonia_opex
+
+
+        qoi_dictionary_list_general.append(qoi_general)
+        qoi_dictionary_list_wind.append(qoi_wind)
+        qoi_dictionary_list_pv.append(qoi_pv)
+        qoi_dictionary_list_battery.append(qoi_batt)
+        qoi_dictionary_list_pem.append(qoi_pem)
+        qoi_dictionary_list_h2_storage.append(qoi_h2_storage)
+        qoi_dictionary_list_steel.append(qoi_steel)
+        qoi_dictionary_list_ammonia.append(qoi_ammonia)
     
-    # create dataframe
-    qoi_df = pd.DataFrame(qoi_dictionary_list)
-    qoi_df = qoi_df.set_index(keys=["ID"], drop=True)
+    qoi_lists = {"General": qoi_dictionary_list_general,
+                 "Wind": qoi_dictionary_list_wind,
+                 "PV Solar": qoi_dictionary_list_pv,
+                 "Battery": qoi_dictionary_list_battery,
+                 "PEM Electrolyzer": qoi_dictionary_list_pem,
+                 "Hydrogen Storage": qoi_dictionary_list_h2_storage,
+                 "Steel": qoi_dictionary_list_steel,
+                 "Ammonia": qoi_dictionary_list_ammonia}
+    
+    # create dataframes and print latex tables
+    i = 0
+    general_format = "{:,.1f}".format
+    sub_df = pd.DataFrame(qoi_lists["General"])
+    sub_df = sub_df.set_index(keys=["ID"], drop=True)
+    latex_string = sub_df.fillna(" ").T.to_latex(float_format=general_format)
+    lines = latex_string.splitlines()
+    header_lines = "\n".join(lines[:4])
 
-    # general_format = "{:,.2f}".format
-    qoi_df.style.format(thousands=",")
+    print(header_lines)
+    for key in qoi_lists.keys():
+        sub_df = pd.DataFrame(qoi_lists[key])
+        sub_df = sub_df.set_index(keys=["ID"], drop=True)
 
-    general_format = "{:,.2f}".format
+        latex_string = sub_df.fillna(" ").T.to_latex(float_format=general_format)
+        lines = latex_string.splitlines()
+        if i == len(qoi_lists.keys()) - 1:
+            print("\\addlinespace[1em]")
+            lines = lines[4:] # Remove \begin{tabular} and \toprule
+            latex_string_no_env = "\n".join(lines)
+        else:
+            if i > 0:
+                print("\\addlinespace[1em]")
+            lines = lines[4:-2] # Remove \begin{tabular} and \end{tabular} together with \toprule and \bottomrule
+            latex_string_no_env = "\n".join(lines)
 
-    for column in qoi_df.columns:
-        if qoi_df[column].dtype is float:
-            if (qoi_df[column].min() > 99): 
-                qoi_df[column] = qoi_df[column].round(decimals=0)
-            else:
-                qoi_df[column] = qoi_df[column].round(decimals=2)
+        print("\\textbf{", f"{key}", "} \\\\", sep='')
+        print(latex_string_no_env)
 
-    print(qoi_df.fillna(" ").T.to_latex(float_format=general_format))
+        i += 1
 
 if __name__ == "__main__":
 
     # comparison_table()
-    financial_inputs_table()
-    # costs_table()
+    # financial_inputs_table()
+    costs_table()
