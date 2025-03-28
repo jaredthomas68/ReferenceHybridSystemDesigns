@@ -210,42 +210,6 @@ def comparison_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         else:
             qoi_ammonia["Ammonia capacity (kt/yr)"] = None
 
-        # qoi["LCOH (USD/kg-H$_2$)"] = greenheart_output["lcoh"]
-
-        # if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
-        #     qoi["LCOS (USD/t steel)"] = greenheart_output["steel_finance"]["sol"]["price"]
-        # else:
-        #     qoi["LCOS (USD/t steel)"] = None
-        
-        # if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
-        #     qoi["LCOA (USD/kg-NH$_3$)"] = greenheart_output["ammonia_finance"]["sol"]["price"]
-        # else:
-        #     qoi["LCOA (USD/kg-NH$_3$)"] = None
-
-        # qoi["WACC-H$_2$ ($\%$)"] = (greenheart_output["profast_sol_lcoh"]["wacc"])*100
-
-        # if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
-        #     qoi["WACC-steel ($\%$)"] = (greenheart_output["steel_finance"]["sol"]["wacc"])*100
-        # else:
-        #     qoi["WACC-steel ($\%$)"] = None
-        
-        # if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
-        #     qoi["WACC-ammonia ($\%$)"] = (greenheart_output["ammonia_finance"]["sol"]["wacc"])*100
-        # else:
-        #     qoi["WACC-ammonia ($\%$)"] = None
-
-        # qoi["CRF-H$_2$ ($\%$)"] = greenheart_output["profast_sol_lcoh"]["crf"]*100
-        
-        # if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
-        #     qoi["CRF-steel ($\%$)"] = greenheart_output["steel_finance"]["sol"]["crf"]*100
-        # else:
-        #     qoi["CRF-steel ($\%$)"] = None
-        
-        # if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
-        #     qoi["CRF-ammonia ($\%$)"] = greenheart_output["ammonia_finance"]["sol"]["crf"]*100
-        # else:
-        #     qoi["CRF-ammonia ($\%$)"] = None
-
         qoi_dictionary_list_general.append(qoi_general)
         qoi_dictionary_list_wind.append(qoi_wind)
         qoi_dictionary_list_pv.append(qoi_pv)
@@ -326,7 +290,14 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
     storage_keys = {"lined_rock_cavern": "Rock cavern", "salt_cavern": "Salt cavern", "none": "None", "pipe": "Underground pipes", "turbine": "In-turbine", "pressure_vessel": "Pressure vessel"}
     states = {"01": "Minnesota", "02": "Texas", "03": "Texas", "04": "New Jersey", "05": "California"}
 
-    qoi_dictionary_list = []
+    qoi_dictionary_list_general = []
+    qoi_dictionary_list_wind = []
+    qoi_dictionary_list_pv = []
+    qoi_dictionary_list_battery = []
+    qoi_dictionary_list_h2 = []
+    qoi_dictionary_list_steel = []
+    qoi_dictionary_list_ammonia = []
+
     # loop over designs
     for design in designs_to_compare:
         # get full design name
@@ -345,82 +316,171 @@ def financial_inputs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
         else:
             orbit_input = False
             print("    ORBIT input skipped")
+        
+        ghout_path = get_filename_from_partial_name(ref_sys_path+design_name+"/"+output_files_path, "output.yaml")
+        greenheart_output = load_yaml(ghout_path)
+        print("    GreenHEART output loaded")
 
         if "ammonia" in greenheart_input:
             roe_ammonia = greenheart_input["ammonia"]["finances"]["financial_assumptions"]["leverage after tax nominal discount rate"]
             debt_ratio_ammonia = greenheart_input["ammonia"]["finances"]["financial_assumptions"]["debt equity ratio of initial financing"]
             debt_percent_ammonia = debt_ratio_ammonia/(debt_ratio_ammonia + 1.0)
-            debt_rate_steel_ammonia = greenheart_input["ammonia"]["finances"]["financial_assumptions"]["debt interest rate"]
+            debt_rate_ammonia = greenheart_input["ammonia"]["finances"]["financial_assumptions"]["debt interest rate"]
         else:
             roe_ammonia = np.nan
             debt_percent_ammonia = np.nan
-            debt_rate_steel_ammonia = np.nan
+            debt_rate_ammonia = np.nan
 
         if "steel" in greenheart_input:
             roe_steel = greenheart_input["steel"]["finances"]["financial_assumptions"]["leverage after tax nominal discount rate"]
             debt_ratio_steel = greenheart_input["steel"]["finances"]["financial_assumptions"]["debt equity ratio of initial financing"]
             debt_percent_steel = debt_ratio_steel/(debt_ratio_steel + 1.0)
-            debt_rate_steel_ammonia = greenheart_input["steel"]["finances"]["financial_assumptions"]["debt interest rate"]
+            debt_rate_steel = greenheart_input["steel"]["finances"]["financial_assumptions"]["debt interest rate"]
         else:
             roe_steel = np.nan
             debt_percent_steel = np.nan
+            debt_rate_steel = np.nan
 
         # get QOIs
-        qoi = {}
-        qoi["ID"] = design
-        qoi["State"] = states[design]
-        qoi["Area"] = regions[design]
-        qoi["Product"] = products[design]
-        qoi["Foundation"] = foundation_type[design]
-        qoi["Plant Life (years)"] = greenheart_input["project_parameters"]["project_lifetime"]
-        qoi["Real ROE wind (\%)"] = gh_financial_parameters["discount_rate"]["wind"]*100
-        qoi["Real ROE PV (\%)"] = gh_financial_parameters["discount_rate"]["solar"]*100
-        qoi["Real ROE battery (\%)"] = gh_financial_parameters["discount_rate"]["battery"]*100
-        qoi["Real ROE hydrogen (\%)"] = gh_financial_parameters["discount_rate"]["electrolyzer"]*100
-        qoi["Real ROE steel (\%)"] = roe_steel*100
-        qoi["Real ROE ammonia (\%)"] = roe_ammonia*100
-        qoi["Total income tax rate (\%)"] = gh_financial_parameters["total_income_tax_rate"]*100
-        qoi["Capital gains tax rate (\%)"] = gh_financial_parameters["capital_gains_tax_rate"]*100
-        qoi["Property tax rate (\%)"] = gh_financial_parameters["property_tax"]*100
-        qoi["Property insurance rate (\%)"] = gh_financial_parameters["property_insurance"]*100
-        qoi["Debt percentage wind (\%)"] = gh_financial_parameters["debt_equity_split"]["wind"]*100
-        qoi["Debt percentage PV (\%)"] = gh_financial_parameters["debt_equity_split"]["solar"]*100
-        qoi["Debt percentage battery (\%)"] = gh_financial_parameters["debt_equity_split"]["battery"]*100
-        qoi["Debt percentage hydrogen (\%)"] = gh_financial_parameters["debt_equity_split"]["electrolyzer"]*100
-        qoi["Debt percentage steel (\%)"] = debt_percent_steel*100
-        qoi["Debt percentage ammonia (\%)"] = debt_percent_ammonia*100
-        qoi["Debt interest rate wind (\%)"] = gh_financial_parameters["debt_interest_rate"]["wind"]*100
-        qoi["Debt interest rate PV (\%)"] = gh_financial_parameters["debt_interest_rate"]["solar"]*100
-        qoi["Debt interest rate battery (\%)"] = gh_financial_parameters["debt_interest_rate"]["battery"]*100
-        qoi["Debt interest rate electrolyzer (\%)"] = gh_financial_parameters["debt_interest_rate"]["electrolyzer"]*100
-        qoi["Debt interest rate hydrogen storage (\%)"] = gh_financial_parameters["debt_interest_rate"]["h2_storage"]*100
-        qoi["Debt interest rate steel/ammonia (\%)"] = debt_rate_steel_ammonia*100
-        qoi["Months working reserve"] = gh_financial_parameters["cash_onhand_months"]
-        qoi["Debt type"] = "Revolving" #financial_input["financial_parameters"]["debt_type"]
-        qoi["Depr. method"] = gh_financial_parameters["depreciation_method"]
-        qoi["Depr. period (clean energy) (years)"] = gh_financial_parameters["depreciation_period"]
-        qoi["Depr. period (hydrogen) (years)"] = gh_financial_parameters["depreciation_period_electrolyzer"]
-        qoi["Depr. period (steel/ammonia) (years)"] = 7
+        qoi_general = {}
+        qoi_general["ID"] = design
+        qoi_general["State"] = states[design]
+        qoi_general["Area"] = regions[design]
+        qoi_general["Product"] = products[design]
+        qoi_general["Foundation"] = foundation_type[design]
 
-        qoi_dictionary_list.append(qoi)
+        qoi_general["Plant Life (years)"] = greenheart_input["project_parameters"]["project_lifetime"]
+        qoi_general["Total income tax rate (\%)"] = gh_financial_parameters["total_income_tax_rate"]*100
+        qoi_general["Capital gains tax rate (\%)"] = gh_financial_parameters["capital_gains_tax_rate"]*100
+        qoi_general["Property tax rate (\%)"] = gh_financial_parameters["property_tax"]*100
+        qoi_general["Property insurance rate (\%)"] = gh_financial_parameters["property_insurance"]*100
+        qoi_general["Months working reserve"] = gh_financial_parameters["cash_onhand_months"]
+        qoi_general["Debt type"] = "Revolving" #financial_input["financial_parameters"]["debt_type"]
+        qoi_general["Depr. method"] = gh_financial_parameters["depreciation_method"]
+        qoi_general["Depr. period"] = 7
+
+        # wind
+        qoi_wind = {}
+        qoi_wind["ID"] = design
+        qoi_wind["Real ROE wind (\%)"] = gh_financial_parameters["discount_rate"]["wind"]*100
+        qoi_wind["Debt percentage wind (\%)"] = gh_financial_parameters["debt_equity_split"]["wind"]*100
+        qoi_wind["Debt interest rate wind (\%)"] = gh_financial_parameters["debt_interest_rate"]["wind"]*100
+
+        # pv
+        qoi_pv = {}
+        qoi_pv["ID"] = design
+        qoi_pv["Real ROE PV (\%)"] = gh_financial_parameters["discount_rate"]["solar"]*100
+        qoi_pv["Debt percentage PV (\%)"] = gh_financial_parameters["debt_equity_split"]["solar"]*100
+        qoi_pv["Debt interest rate PV (\%)"] = gh_financial_parameters["debt_interest_rate"]["solar"]*100
+
+        # battery
+        qoi_batt = {}
+        qoi_batt["ID"] = design
+        qoi_batt["Real ROE battery (\%)"] = gh_financial_parameters["discount_rate"]["battery"]*100
+        qoi_batt["Debt percentage battery (\%)"] = gh_financial_parameters["debt_equity_split"]["battery"]*100
+        qoi_batt["Debt interest rate battery (\%)"] = gh_financial_parameters["debt_interest_rate"]["battery"]*100
+
+        # hydrogen
+        qoi_h2 = {}
+        qoi_h2["ID"] = design
+        qoi_h2["Real ROE hydrogen (\%)"] = gh_financial_parameters["discount_rate"]["electrolyzer"]*100
+        qoi_h2["Debt percentage hydrogen (\%)"] = gh_financial_parameters["debt_equity_split"]["electrolyzer"]*100
+        qoi_h2["Debt interest rate electrolyzer (\%)"] = gh_financial_parameters["debt_interest_rate"]["electrolyzer"]*100
+        qoi_h2["Debt interest rate hydrogen storage (\%)"] = gh_financial_parameters["debt_interest_rate"]["h2_storage"]*100
+        qoi_h2["WACC-H$_2$ ($\%$)"] = (greenheart_output["profast_sol_lcoh"]["wacc"])*100
+        qoi_h2["CRF-H$_2$ ($\%$)"] = greenheart_output["profast_sol_lcoh"]["crf"]*100
+        qoi_h2["LCOH (USD/kg-H$_2$)"] = greenheart_output["lcoh"]
+
+        # steel
+        qoi_steel = {}
+        qoi_steel["ID"] = design
+        qoi_steel["Real ROE steel (\%)"] = roe_steel*100
+        qoi_steel["Debt percentage steel (\%)"] = debt_percent_steel*100
+        if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
+            qoi_steel["Debt interest rate steel (\%)"] = debt_rate_steel*100
+            qoi_steel["WACC-steel ($\%$)"] = (greenheart_output["steel_finance"]["sol"]["wacc"])*100
+        else:
+            qoi_steel["WACC-steel ($\%$)"] = None
+
+        if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
+            qoi_steel["CRF-steel ($\%$)"] = greenheart_output["steel_finance"]["sol"]["crf"]*100
+        else:
+            qoi_steel["CRF-steel ($\%$)"] = None
+
+        if "steel_finance" in greenheart_output.keys() and greenheart_output["steel_finance"] is not None:
+            qoi_steel["LCOS (USD/t steel)"] = greenheart_output["steel_finance"]["sol"]["price"]
+        else:
+            qoi_steel["LCOS (USD/t steel)"] = None
+
+        # ammonia
+        qoi_ammonia = {}
+        qoi_ammonia["ID"] = design
+        qoi_ammonia["Real ROE ammonia (\%)"] = roe_ammonia*100
+        qoi_ammonia["Debt percentage ammonia (\%)"] = debt_percent_ammonia*100
+        qoi_ammonia["Debt interest rate ammonia (\%)"] = debt_rate_ammonia*100
+
+        if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
+            qoi_ammonia["WACC-ammonia ($\%$)"] = (greenheart_output["ammonia_finance"]["sol"]["wacc"])*100
+        else:
+            qoi_ammonia["WACC-ammonia ($\%$)"] = None
+
+        if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
+            qoi_ammonia["CRF-ammonia ($\%$)"] = greenheart_output["ammonia_finance"]["sol"]["crf"]*100
+        else:
+            qoi_ammonia["CRF-ammonia ($\%$)"] = None
+
+        if "ammonia_finance" in greenheart_output.keys() and greenheart_output["ammonia_finance"] is not None:
+            qoi_ammonia["LCOA (USD/kg-NH$_3$)"] = greenheart_output["ammonia_finance"]["sol"]["price"]
+        else:
+            qoi_ammonia["LCOA (USD/kg-NH$_3$)"] = None
+        
+        
+        qoi_dictionary_list_general.append(qoi_general)
+        qoi_dictionary_list_wind.append(qoi_wind)
+        qoi_dictionary_list_pv.append(qoi_pv)
+        qoi_dictionary_list_battery.append(qoi_batt)
+        qoi_dictionary_list_h2.append(qoi_h2)
+        qoi_dictionary_list_steel.append(qoi_steel)
+        qoi_dictionary_list_ammonia.append(qoi_ammonia)
     
-    # create dataframe
-    qoi_df = pd.DataFrame(qoi_dictionary_list)
-    qoi_df = qoi_df.set_index(keys=["ID"], drop=True)
+        qoi_lists = {"General": qoi_dictionary_list_general,
+                 "Wind": qoi_dictionary_list_wind,
+                 "PV Solar": qoi_dictionary_list_pv,
+                 "Battery": qoi_dictionary_list_battery,
+                 "Hydrogen": qoi_dictionary_list_h2,
+                 "Steel": qoi_dictionary_list_steel,
+                 "Ammonia": qoi_dictionary_list_ammonia}
+    
+    # create dataframes and print latex tables
+    i = 0
+    general_format = "{:,.1f}".format
+    sub_df = pd.DataFrame(qoi_lists["General"])
+    sub_df = sub_df.set_index(keys=["ID"], drop=True)
+    latex_string = sub_df.fillna(" ").T.to_latex(float_format=general_format)
+    lines = latex_string.splitlines()
+    header_lines = "\n".join(lines[:4])
 
-    # general_format = "{:,.2f}".format
-    qoi_df.style.format(thousands=",")
+    print(header_lines)
+    for key in qoi_lists.keys():
+        sub_df = pd.DataFrame(qoi_lists[key])
+        sub_df = sub_df.set_index(keys=["ID"], drop=True)
 
-    general_format = "{:,.2f}".format
+        latex_string = sub_df.fillna(" ").T.to_latex(float_format=general_format)
+        lines = latex_string.splitlines()
+        if i == len(qoi_lists.keys()) - 1:
+            print("\\addlinespace[1em]")
+            lines = lines[4:] # Remove \begin{tabular} and \toprule
+            latex_string_no_env = "\n".join(lines)
+        else:
+            if i > 0:
+                print("\\addlinespace[1em]")
+            lines = lines[4:-2] # Remove \begin{tabular} and \end{tabular} together with \toprule and \bottomrule
+            latex_string_no_env = "\n".join(lines)
 
-    for column in qoi_df.columns:
-        if isinstance(qoi_df[column].min(), float):
-            if (qoi_df[column].min() > 99): 
-                qoi_df[column] = qoi_df[column].round(decimals=0)
-            else:
-                qoi_df[column] = qoi_df[column].round(decimals=2)
+        print("\\textbf{", f"{key}", "} \\\\", sep='')
+        print(latex_string_no_env)
 
-    print(qoi_df.fillna(" ").T.to_latex(float_format=general_format))
+        i += 1
 
 def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
     ref_sys_path = "../reference_systems/"
@@ -527,6 +587,6 @@ def costs_table(designs_to_compare=["01", "02", "03", "04", "05"]):
 
 if __name__ == "__main__":
 
-    comparison_table()
-    # financial_inputs_table()
+    # comparison_table()
+    financial_inputs_table()
     # costs_table()
